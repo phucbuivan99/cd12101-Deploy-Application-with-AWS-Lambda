@@ -57,7 +57,7 @@ async function verifyToken(authHeader) {
 
   const pemCertificate = selectedKey.x5c[0]
   const certificate = `-----BEGIN CERTIFICATE-----\n${pemCertificate}\n-----END CERTIFICATE-----`
-  const decodedToken = verify(token, certificate, { algorithms: ['RS256'] })
+  const decodedToken = await verify(token, certificate)
 
   return decodedToken
 
@@ -73,4 +73,15 @@ function getToken(authHeader) {
   const token = split[1]
 
   return token
+}
+
+async function verify(token, certificate) {
+  return new Promise((resolve, reject) => {
+    jsonwebtoken.verify(token, certificate, { algorithms: ['RS256'] }, (err, decoded) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(decoded);
+    });
+  });
 }

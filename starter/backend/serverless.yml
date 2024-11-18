@@ -6,6 +6,8 @@ service: serverless-todo-app
 
 plugins:
   - serverless-iam-roles-per-function
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
 
 
 provider:
@@ -24,6 +26,18 @@ provider:
     SIGNED_URL_EXPIRATION: 300
     INDEX_NAME: ${self:provider.environment.TODOS_CREATED_AT_INDEX}
 
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Todos App
+        description: Serverless application for todos monitoring
+    models:
+      - name: CreateTodoRequest
+        contentType: application/json
+        schema: ${file(models/create-todo-model.json)}
+
 functions:
 
   Auth:
@@ -36,6 +50,25 @@ functions:
       - http:
           method: get
           path: todos
+          cors: true
+          authorizer: Auth
+    iamRoleStatementsName: ${self:provider.environment.PROJECT_NAME}-get-todo-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - "dynamodb:Query"
+        Resource: 
+          - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}"
+      - Effect: Allow
+        Action:
+          - "dynamodb:Query"
+        Resource: 
+          - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.INDEX_NAME}"
+      - Effect: Allow
+        Action:
+          - "xray:PutTraceSegments"
+        Resource:
+          - '*'
 
   # TODO: Configure this function
   CreateTodo:
@@ -45,7 +78,13 @@ functions:
           method: post
           path: todos
           cors: true
-          #authorizer: Auth
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new todo task
+            description: Create a todo task
+            requestModels:
+              'application/json': CreateTodoRequest
     iamRoleStatementsName: ${self:provider.environment.PROJECT_NAME}-create-todo-role-${self:provider.stage}
     iamRoleStatements:
       - Effect: Allow

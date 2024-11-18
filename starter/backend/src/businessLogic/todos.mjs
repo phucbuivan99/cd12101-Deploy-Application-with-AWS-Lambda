@@ -20,3 +20,7 @@ export async function createTodo(newTodo, userId) {
 
     return await todosAccess.createTodoItem(todoItem);
 }
+
+export async function getTodosForUser(userId) {
+    return await todosAccess.getAllTodos(userId);
+}
