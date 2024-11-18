@@ -39,7 +39,7 @@ export class TodosAccess {
         return todoItem
     }
 
-    async updateTodoItem(todoId, userId, todoUpdate) {
+    async updateTodoItem(userId, todoId, todoUpdate) {
         await this.docClient
             .update({
                 TableName: this.todosTable,
@@ -55,14 +55,15 @@ export class TodosAccess {
                 },
                 ExpressionAttributeNames: {
                     '#name': 'name'
-                }
+                },
+                ReturnValues: 'UPDATE_NEW'
             })
             .promise();
 
         return todoUpdate;
     }
 
-    async deleteTodoItem(todoId, userId) {
+    async deleteTodoItem(userId, todoId) {
         await this.docClient
             .delete({
                 TableName: this.todosTable,
@@ -72,6 +73,7 @@ export class TodosAccess {
                 }
             })
             .promise();
+        return todoId
     }
 
     async updateTodoAttachmentUrl(todoId, userId, attachmentUrl) {

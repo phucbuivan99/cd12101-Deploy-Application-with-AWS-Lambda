@@ -24,3 +24,24 @@ export async function createTodo(newTodo, userId) {
 export async function getTodosForUser(userId) {
     return await todosAccess.getAllTodos(userId);
 }
+
+export async function updateTodo(
+    userId,
+    todoId,
+    todoUpdate
+) {
+    return await todosAccess.updateTodoItem(userId, todoId, todoUpdate);
+}
+
+export async function deleteTodo(
+    userId,
+    todoId
+) {
+    return await todosAccess.deleteTodoItem(userId, todoId);
+}
+
+export function generateAttachmentUrl(
+    todoId
+) {
+    return attachmentUtils.getUploadUrl(todoId);
+}
