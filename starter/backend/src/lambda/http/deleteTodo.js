@@ -1,23 +1,26 @@
-import { deleteTodo } from "../../businessLogic/todos.mjs";
-import { extractUserId } from "../../utils/utils.mjs";
+import middy from '@middy/core'
+import cors from '@middy/http-cors'
+import httpErrorHandler from '@middy/http-error-handler'
+import { deleteTodo } from '../../businessLogic/todos.mjs'
+import { getUserId } from '../../auth/utils.mjs'
 
-export async function handler(event) {
-  const todoId = event.pathParameters.todoId
+export const handler = middy()
+  .use(httpErrorHandler())
+  .use(
+    cors({
+      credentials: true
+    })
+  )
+  .handler(async (event) => {
+    console.log('Starting event: ', event)
 
-  // TODO: Remove a TODO item by id
-  const userId = extractUserId(event);
-  await deleteTodo(
-    userId,
-    todoId
-  );
-  return {
-    statusCode: 204,
-    body: '',
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true,
-      'Access-Control-Allow-Headers': 'Content-Type'
+    const todoId = event.pathParameters.todoId
+    const authorization = event.headers.Authorization
+    const userId = getUserId(authorization)
+
+    await deleteTodo(userId, todoId)
+
+    return {
+      statusCode: 204
     }
-  }
-}
-
+  })

@@ -1,18 +1,27 @@
-import { getTodosForUser } from "../../businessLogic/todos.mjs"
-import { extractUserId } from "../../utils/utils.mjs"
+import middy from '@middy/core'
+import cors from '@middy/http-cors'
+import httpErrorHandler from '@middy/http-error-handler'
+import { getAllTodos } from '../../businessLogic/todos.mjs'
+import { getUserId } from '../../auth/utils.mjs'
 
-export async function handler(event) {
-  const userId = extractUserId(event)
-  const todos = await getTodosForUser(userId)
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true,
-      'Access-Control-Allow-Headers': 'Content-Type'
-    },
-    body: JSON.stringify({
-      items: todos
+export const handler = middy()
+  .use(httpErrorHandler())
+  .use(
+    cors({
+      credentials: true
     })
-  }
-}
+  )
+  .handler(async (event) => {
+    console.log('Starting event: ', event)
+
+    const authorization = event.headers.Authorization
+    const userId = getUserId(authorization)
+    const todos = await getAllTodos(userId)
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        items: todos
+      })
+    }
+  })
